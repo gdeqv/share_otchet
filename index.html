@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Share Social — Этапы</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:#0f172a;
+    color:white;
+    padding:40px 20px;
+}
+
+h1{
+    text-align:center;
+    margin-bottom:40px;
+}
+
+.day{
+    margin-bottom:30px;
+    padding:20px;
+    background:#1e293b;
+    border-radius:15px;
+}
+
+.title{
+    font-size:18px;
+    margin-bottom:10px;
+}
+
+.timer{
+    font-size:22px;
+    margin-bottom:10px;
+}
+
+.progress-bar{
+    height:20px;
+    background:#0f172a;
+    border-radius:20px;
+    overflow:hidden;
+}
+
+.progress{
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg,#3b82f6,#06b6d4);
+}
+
+.percent{
+    margin-top:6px;
+    font-size:14px;
+    opacity:0.8;
+}
+
+.domain{
+    text-align:center;
+    margin-top:40px;
+    opacity:0.6;
+}
+</style>
+</head>
+<body>
+
+<h1>⌛ Share Social — Дорожная карта</h1>
+
+<div id="daysContainer"></div>
+
+<div class="domain">sharesocial.ru (скоро откроется)</div>
+
+<script>
+
+function getMSK(){
+    const now = new Date();
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    return new Date(utc + (3 * 3600000));
+}
+
+const days = [
+"2026-02-15","2026-02-16",
+"2026-02-20","2026-02-21","2026-02-22","2026-02-23",
+"2026-03-02","2026-03-03","2026-03-04","2026-03-05","2026-03-06","2026-03-07",
+"2026-03-08"
+];
+
+const container = document.getElementById("daysContainer");
+
+// создаём блоки
+days.forEach((date,index)=>{
+    const block = document.createElement("div");
+    block.className = "day";
+    block.id = "day"+index;
+    block.innerHTML = `
+        <div class="title">Этап: ${date}</div>
+        <div class="timer" id="timer${index}">00:00:00</div>
+        <div class="progress-bar">
+            <div class="progress" id="progress${index}"></div>
+        </div>
+        <div class="percent" id="percent${index}">0%</div>
+    `;
+    container.appendChild(block);
+});
+
+function update(){
+
+    const now = getMSK();
+
+    days.forEach((date,index)=>{
+
+        const start = new Date(date+"T00:00:00");
+        const end = new Date(date+"T23:59:59");
+
+        const timerEl = document.getElementById("timer"+index);
+        const progressEl = document.getElementById("progress"+index);
+        const percentEl = document.getElementById("percent"+index);
+
+        if(now < start){
+            // ещё не началось — считаем до старта
+            let diff = start - now;
+
+            const h = Math.floor(diff/(1000*60*60));
+            const m = Math.floor((diff%(1000*60*60))/(1000*60));
+            const s = Math.floor((diff%(1000*60))/1000);
+
+            timerEl.innerText =
+                "До начала: " +
+                String(h).padStart(2,'0')+":"+
+                String(m).padStart(2,'0')+":"+
+                String(s).padStart(2,'0');
+
+            progressEl.style.width = "0%";
+            percentEl.innerText = "0%";
+        }
+        else if(now >= start && now <= end){
+            // активный день
+            let diff = end - now;
+
+            const h = Math.floor(diff/(1000*60*60));
+            const m = Math.floor((diff%(1000*60*60))/(1000*60));
+            const s = Math.floor((diff%(1000*60))/1000);
+
+            timerEl.innerText =
+                "До конца: " +
+                String(h).padStart(2,'0')+":"+
+                String(m).padStart(2,'0')+":"+
+                String(s).padStart(2,'0');
+
+            const total = end - start;
+            const passed = now - start;
+
+            let percent = (passed/total)*100;
+            if(percent>100) percent=100;
+
+            progressEl.style.width = percent+"%";
+            percentEl.innerText = percent.toFixed(2)+"%";
+        }
+        else{
+            // уже прошло
+            timerEl.innerText = "Завершено";
+            progressEl.style.width = "100%";
+            percentEl.innerText = "100%";
+        }
+
+    });
+}
+
+setInterval(update,1000);
+update();
+
+</script>
+
+</body>
+</html>
